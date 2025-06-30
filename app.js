@@ -1,61 +1,65 @@
-// app.js
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
 const QRCode = require('qrcode');
 const fs = require('fs');
-const db = require('./db');
+const db = require('./db'); // eeldab db.js olemasolu
 
 const app = express();
 const PORT = process.env.PORT || 3030;
 
-// Vaated ja staatiline sisu
+// Vaated ja staatika
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Avaleht (vorm)
+// Kaust failide salvestamiseks
+const GAME_DIR = process.env.RENDER ? '/tmp' : path.join(__dirname, 'games');
+if (!fs.existsSync(GAME_DIR)) {
+  fs.mkdirSync(GAME_DIR, { recursive: true });
+}
+
+// Avaleht – sisestusvorm
 app.get('/', (req, res) => {
   res.render('form');
 });
 
-// Vormitöötlus ja mängu salvestus
+// Vormilt saadud andmete töötlemine
 app.post('/generate', async (req, res) => {
   const { q1, a1, q2, a2, q3, a3, code } = req.body;
   const id = Math.random().toString(36).substr(2, 6).toLowerCase();
+
   const html = generateGame({ q1, a1, q2, a2, q3, a3, code });
 
-  const filepath = path.join(__dirname, 'games', `${id}.html`);
+  const filepath = path.join(GAME_DIR, `${id}.html`);
+  fs.writeFileSync(filepath, html); // salvestab faili vastavasse kausta
 
-  const url = `${req.protocol}://${req.headers.host}/game/${id}`;
+  const url = `${req.protocol}://${req.headers.host}/game/${id}`; // kasutab db-põhist teenindust
   const qr = await QRCode.toDataURL(url);
 
-  try {
-    db.prepare('INSERT INTO games (id, html, created_at) VALUES (?, ?, ?)').run(id, html, Date.now());
-    console.log(`✅ Mäng salvestati andmebaasi ID-ga: ${id}`);
-  } catch (err) {
-    console.error('❌ Viga salvestamisel:', err);
-  }
+  // Salvesta andmebaasi
+  db.prepare('INSERT INTO games (id, html, created_at) VALUES (?, ?, ?)').run(id, html, Date.now());
+  console.log(`✅ Mäng salvestati: ${id} (${process.env.RENDER ? 'RENDER /tmp' : 'local'})`);
 
   res.render('result', { url, qr, code });
 });
 
-// Mängu teenindamine andmebaasist
+// Teenindab mängu ID põhjal (andmebaasist)
 app.get('/game/:id', (req, res) => {
   const row = db.prepare('SELECT html FROM games WHERE id = ?').get(req.params.id);
-  if (!row) return res.status(404).send('Mängu ei leitud.');
+  if (!row) return res.status(404).send('❌ Mängu ei leitud.');
   res.send(row.html);
 });
 
-// Mängu HTML genereerimine
+// HTML-mängu genereerimine
 function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
-  return `<!DOCTYPE html>
+  return `
+<!DOCTYPE html>
 <html lang="et">
 <head>
   <meta charset="UTF-8">
   <title>Põgenemismäng</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       font-family: Verdana, Geneva, Tahoma, sans-serif;
@@ -65,6 +69,8 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
       padding: 2rem;
       font-size: 1.1rem;
     }
+    h1 { font-size: 1.8rem; }
+    h2 { font-size: 1.4rem; color: #0288d1; }
     .room, .next { display: none; }
     .visible { display: block; }
     input {
@@ -83,8 +89,6 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
       cursor: pointer;
       font-size: 1.1rem;
     }
-    h1 { font-size: 1.8rem; }
-    h2 { font-size: 1.4rem; color: #0288d1; }
     @media (max-width: 600px) {
       body { font-size: 1.3rem; padding: 1rem; }
       h1 { font-size: 2rem; }
@@ -96,6 +100,7 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
 </head>
 <body>
   <h1>🚪 Põgenemine vahetundi</h1>
+
   <div id="room1" class="room visible">
     <h2>1. tuba</h2>
     <p>${q1}</p>
@@ -103,11 +108,15 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
     <button onclick="check(1, '${a1}')">Kontrolli</button>
     <p id="msg1"></p>
   </div>
+
   <div id="next1" class="next">
     <h2>✅ Õige vastus!</h2>
     <p>Vajuta lukule</p>
-    <button onclick="goToRoom(2)"><img src="https://cdn-icons-png.flaticon.com/128/93/93141.png" width="60"></button>
+    <button onclick="goToRoom(2)">
+      <img src="https://cdn-icons-png.flaticon.com/128/93/93141.png" width="60">
+    </button>
   </div>
+
   <div id="room2" class="room">
     <h2>2. tuba</h2>
     <p>${q2}</p>
@@ -115,11 +124,15 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
     <button onclick="check(2, '${a2}')">Kontrolli</button>
     <p id="msg2"></p>
   </div>
+
   <div id="next2" class="next">
     <h2>✅ Õige vastus!</h2>
     <p>Vajuta lukule</p>
-    <button onclick="goToRoom(3)"><img src="https://cdn-icons-png.flaticon.com/128/93/93141.png" width="60"></button>
+    <button onclick="goToRoom(3)">
+      <img src="https://cdn-icons-png.flaticon.com/128/93/93141.png" width="60">
+    </button>
   </div>
+
   <div id="room3" class="room">
     <h2>3. tuba</h2>
     <p>${q3}</p>
@@ -127,6 +140,7 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
     <button onclick="check(3, '${a3}')">Kontrolli</button>
     <p id="msg3"></p>
   </div>
+
   <div id="next3" class="next">
     <h2>🎉 Tubli! Sa leidsid kõik õiged vastused!</h2>
     <p>Oled tõeline mõistatuste meister!</p>
@@ -134,6 +148,7 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
       Vahetundi pääsemise parool on: <strong>${code}</strong>
     </p>
   </div>
+
   <script>
     function check(n, correct) {
       const input = document.getElementById('input' + n).value.trim();
@@ -152,10 +167,10 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
     }
   </script>
 </body>
-</html>`;
+</html>
+  `;
 }
 
-// Serveri käivitamine
 app.listen(PORT, () => {
-  console.log(`Server töötab aadressil: http://localhost:${PORT}`);
+  console.log(`🚀 Server töötab: http://localhost:${PORT}`);
 });
