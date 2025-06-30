@@ -33,7 +33,7 @@ app.post('/generate', async (req, res) => {
   const html = generateGame({ q1, a1, q2, a2, q3, a3, code });
 
   const filepath = path.join(GAME_DIR, `${id}.html`);
-  fs.writeFileSync(filepath, html); // salvestab faili vastavasse kausta
+  
 
   const url = `${req.protocol}://${req.headers.host}/game/${id}`; // kasutab db-põhist teenindust
   const qr = await QRCode.toDataURL(url);

@@ -2,18 +2,17 @@ const path = require('path');
 const Database = require('better-sqlite3');
 const fs = require('fs');
 
-// Leia sobiv kataloog: Renderis /tmp, muidu lokaalselt 'games'
-const DB_DIR = process.env.RENDER ? '/tmp' : path.join(__dirname, 'games');
-const DB_PATH = path.join(DB_DIR, 'games.db');
+// Kasuta alati sama asukohta (projektikaust)
+const DB_PATH = path.join(__dirname, 'games', 'games.db');
 
-// Veendu, et kaust olemas
-if (!fs.existsSync(DB_DIR)) {
-  fs.mkdirSync(DB_DIR, { recursive: true });
+// Veendu, et kaust on olemas
+if (!fs.existsSync(path.dirname(DB_PATH))) {
+  fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 }
 
 const db = new Database(DB_PATH);
 
-// Loo tabel kui see ei eksisteeri
+// Tabel
 db.prepare(`
   CREATE TABLE IF NOT EXISTS games (
     id TEXT PRIMARY KEY,
