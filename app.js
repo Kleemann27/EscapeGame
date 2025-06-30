@@ -19,17 +19,23 @@ app.get('/', (req, res) => {
 });
 
 // Vormilt saadud andmete töötlemine ja salvestamine
-app.post('/generate', (req, res) => {
+app.post('/generate', async (req, res) => {
   const { q1, a1, q2, a2, q3, a3, code } = req.body;
-  const id = Math.random().toString(36).substr(2, 6);
+  const id = Math.random().toString(36).substr(2, 6).toLowerCase();
   const html = generateGame({ q1, a1, q2, a2, q3, a3, code });
 
-  // SALVESTA ANDMEBAASI
-  db.prepare('INSERT INTO games (id, html, created_at) VALUES (?, ?, ?)').run(id, html, Date.now());
+  const filepath = path.join(__dirname, 'games', `${id}.html`);
+  fs.writeFileSync(filepath, html);
 
-  const url = `https://SINU-DOMEEN/game/${id}`;
-  res.render('result', { url, qr: null, code }); // Või lisa QR kui on
+  // ⬇️ Loob korrektse URL-i sõltumata hostist
+  const url = `${req.protocol}://${req.headers.host}/games/${id}.html`;
+
+  // ⬇️ QR-kood
+  const qr = await QRCode.toDataURL(url);
+
+  res.render('result', { url, qr, code });
 });
+
 
 // Mängu teenindamine ID põhjal
 app.get('/game/:id', (req, res) => {
