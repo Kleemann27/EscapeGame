@@ -88,7 +88,7 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
     <p id="msg2"></p>
   </div>
 
-  <div id="next1" class="next">
+  <div id="next2" class="next">
     <h2>✅ Õige vastus!</h2>
     <p>Vajuta lukule</p>
     <button onclick="goToRoom(2)"><img src="https://cdn-icons-png.flaticon.com/128/93/93141.png" width="60"></button>
