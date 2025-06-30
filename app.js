@@ -2,49 +2,49 @@ const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
 const QRCode = require('qrcode');
-const db = require('./db');
+const fs = require('fs');
+const db = require('./db'); // eeldab db.js olemasolu
 const app = express();
 
 const PORT = process.env.PORT || 3030;
 
-// EJS vaated ja statiline kaust
+// Vaated ja staatika
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Vormivaade
+// Avaleht – sisestusvorm
 app.get('/', (req, res) => {
   res.render('form');
 });
 
-// Vormilt saadud andmete töötlemine ja salvestamine
+// Vormilt saadud andmete töötlemine
 app.post('/generate', async (req, res) => {
   const { q1, a1, q2, a2, q3, a3, code } = req.body;
   const id = Math.random().toString(36).substr(2, 6).toLowerCase();
+
   const html = generateGame({ q1, a1, q2, a2, q3, a3, code });
 
   const filepath = path.join(__dirname, 'games', `${id}.html`);
-  fs.writeFileSync(filepath, html);
+  fs.writeFileSync(filepath, html); // salvesta fail kettale
 
-  // ⬇️ Loob korrektse URL-i sõltumata hostist
-  const url = `${req.protocol}://${req.headers.host}/games/${id}.html`;
+  db.prepare('INSERT INTO games (id, html, created_at) VALUES (?, ?, ?)').run(id, html, Date.now());
 
-  // ⬇️ QR-kood
+  const url = `${req.protocol}://${req.headers.host}/game/${id}`; // korrektne URL
   const qr = await QRCode.toDataURL(url);
 
-  res.render('result', { url, qr, code });
+  res.render('result', { url, qr, code }); // kuva tulemusleht
 });
 
-
-// Mängu teenindamine ID põhjal
+// Andmebaasist teenindatav mäng
 app.get('/game/:id', (req, res) => {
   const row = db.prepare('SELECT html FROM games WHERE id = ?').get(req.params.id);
   if (!row) return res.status(404).send('Mängu ei leitud.');
   res.send(row.html);
 });
 
-// Mängu HTML genereerimine
+// HTML mängu genereerimine
 function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
   return `
 <!DOCTYPE html>
@@ -93,12 +93,10 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
   </div>
 
   <div id="next2" class="next">
-  <h2>✅ Õige vastus!</h2>
-  <p>Vajuta lukule</p>
-  <button onclick="goToRoom(3)">
-    <img src="https://cdn-icons-png.flaticon.com/128/93/93141.png" width="60">
-  </button>
-</div>
+    <h2>✅ Õige vastus!</h2>
+    <p>Vajuta lukule</p>
+    <button onclick="goToRoom(3)"><img src="https://cdn-icons-png.flaticon.com/128/93/93141.png" width="60"></button>
+  </div>
 
   <div id="room3" class="room">
     <h2>3. tuba</h2>
@@ -118,16 +116,16 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
 
   <script>
     function check(n, correct) {
-  const input = document.getElementById('input' + n).value.trim();
-  const msg = document.getElementById('msg' + n);
-  if (input.toLowerCase() === correct.toLowerCase()) {
-    msg.textContent = "";
-    document.getElementById('room' + n).classList.remove("visible");
-    document.getElementById('next' + n).classList.add("visible");
-  } else {
-    msg.textContent = "❌ Vale vastus. Proovi uuesti!";
-  }
-}
+      const input = document.getElementById('input' + n).value.trim();
+      const msg = document.getElementById('msg' + n);
+      if (input.toLowerCase() === correct.toLowerCase()) {
+        msg.textContent = "";
+        document.getElementById('room' + n).classList.remove("visible");
+        document.getElementById('next' + n).classList.add("visible");
+      } else {
+        msg.textContent = "❌ Vale vastus. Proovi uuesti!";
+      }
+    }
 
     function goToRoom(n) {
       document.getElementById('next' + (n - 1)).classList.remove("visible");
@@ -136,9 +134,10 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
   </script>
 </body>
 </html>
-`;
+  `;
 }
 
+// Käivitab serveri
 app.listen(PORT, () => {
   console.log(`Server töötab aadressil: http://localhost:${PORT}`);
 });
