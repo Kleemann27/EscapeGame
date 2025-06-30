@@ -53,19 +53,74 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
   <meta charset="UTF-8">
   <title>Põgenemismäng</title>
   <style>
+  body {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    background: #e1f5fe;
+    color: #333;
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.1rem;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+    color: #0288d1;
+  }
+
+  .room, .next {
+    display: none;
+  }
+
+  .visible {
+    display: block;
+  }
+
+  input {
+    padding: 0.7rem;
+    font-size: 1.2rem;
+    width: 90%;
+    max-width: 300px;
+  }
+
+  button {
+    margin-top: 1rem;
+    padding: 0.6rem 1.2rem;
+    background: #03a9f4;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: 600px) {
     body {
-      font-family: Verdana, Geneva, Tahoma, sans-serif;
-      background: #e1f5fe;
-      color: #333;
-      text-align: center;
-      padding: 2rem;
+      font-size: 1.3rem;
+      padding: 1rem;
     }
-    .room, .next { display: none; }
-    .visible { display: block; }
-    input { padding: 0.5rem; font-size: 1rem; width: 200px; }
-    button { margin-top: 1rem; padding: 0.5rem 1rem; background: #03a9f4; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    h2 { color: #0288d1; }
-  </style>
+
+    h1 {
+      font-size: 2rem;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+    }
+
+    input {
+      font-size: 1.4rem;
+    }
+
+    button {
+      font-size: 1.3rem;
+    }
+  }
+</style>
+
 </head>
 <body>
   <h1>🚪 Põgenemine vahetundi</h1>
