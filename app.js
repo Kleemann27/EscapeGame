@@ -19,18 +19,16 @@ app.get('/', (req, res) => {
 });
 
 // Vormilt saadud andmete töötlemine ja salvestamine
-app.post('/generate', async (req, res) => {
+app.post('/generate', (req, res) => {
   const { q1, a1, q2, a2, q3, a3, code } = req.body;
   const id = Math.random().toString(36).substr(2, 6);
   const html = generateGame({ q1, a1, q2, a2, q3, a3, code });
 
-  const timestamp = Date.now();
-  db.prepare('INSERT INTO games (id, html, created_at) VALUES (?, ?, ?)')
-    .run(id, html, timestamp);
+  // SALVESTA ANDMEBAASI
+  db.prepare('INSERT INTO games (id, html, created_at) VALUES (?, ?, ?)').run(id, html, Date.now());
 
-  const url = `${req.protocol}://${req.get('host')}/game/${id}`;
-  const qr = await QRCode.toDataURL(url);
-  res.render('result', { url, qr, code });
+  const url = `https://SINU-DOMEEN/game/${id}`;
+  res.render('result', { url, qr: null, code }); // Või lisa QR kui on
 });
 
 // Mängu teenindamine ID põhjal
@@ -89,10 +87,12 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
   </div>
 
   <div id="next2" class="next">
-    <h2>✅ Õige vastus!</h2>
-    <p>Vajuta lukule</p>
-    <button onclick="goToRoom(2)"><img src="https://cdn-icons-png.flaticon.com/128/93/93141.png" width="60"></button>
-  </div>
+  <h2>✅ Õige vastus!</h2>
+  <p>Vajuta lukule</p>
+  <button onclick="goToRoom(3)">
+    <img src="https://cdn-icons-png.flaticon.com/128/93/93141.png" width="60">
+  </button>
+</div>
 
   <div id="room3" class="room">
     <h2>3. tuba</h2>
