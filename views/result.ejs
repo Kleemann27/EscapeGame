@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Mäng loodud!</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       background-color: #e1f5fe;
@@ -26,10 +27,11 @@
     h1 {
       color: #0288d1;
       margin-bottom: 1.5rem;
+      font-size: 1.8rem;
     }
 
     p {
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       color: #333;
       margin: 0.7rem 0;
     }
@@ -37,7 +39,7 @@
     a {
       color: #0288d1;
       font-weight: bold;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       word-break: break-word;
       display: inline-block;
       margin-top: 0.5rem;
@@ -47,14 +49,44 @@
       margin: 1.5rem auto;
     }
 
+    .qr img {
+      max-width: 100%;
+      height: auto;
+    }
+
     .info-box {
       margin-top: 2rem;
       background-color: #fff3cd;
       border: 2px dashed #ff9800;
-      padding: 1rem;
+      padding: 1.2rem;
       border-radius: 12px;
       color: #e65100;
       font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    .info-box p {
+      margin: 0.6rem 0;
+    }
+
+    .info-box strong {
+      font-size: 1.3rem;
+      color: #bf360c;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.6rem;
+      }
+      p, a {
+        font-size: 1.3rem;
+      }
+      .info-box {
+        font-size: 1.2rem;
+      }
+      .info-box strong {
+        font-size: 1.5rem;
+      }
     }
   </style>
 </head>
@@ -73,7 +105,7 @@
 
     <div class="info-box">
       <p>🧠 Selle mängu <strong>vahetundi pääsemise kood</strong> on:</p>
-      <p style="font-size: 1.4rem;"><%= code %></p>
+      <p><strong><%= code %></strong></p>
       <p>⏳ Sinu mängu säilitatakse <strong>2 nädalat</strong></p>
     </div>
   </div>
