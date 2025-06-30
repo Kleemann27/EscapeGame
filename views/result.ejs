@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+  <meta charset="UTF-8">
+  <title>Mäng loodud!</title>
+  <style>
+    body {
+      background-color: #e1f5fe;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      background-color: #fff;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1 {
+      color: #0288d1;
+      margin-bottom: 1.5rem;
+    }
+
+    p {
+      font-size: 1.1rem;
+      color: #333;
+      margin: 0.7rem 0;
+    }
+
+    a {
+      color: #0288d1;
+      font-weight: bold;
+      font-size: 1.1rem;
+      word-break: break-word;
+      display: inline-block;
+      margin-top: 0.5rem;
+    }
+
+    .qr {
+      margin: 1.5rem auto;
+    }
+
+    .info-box {
+      margin-top: 2rem;
+      background-color: #fff3cd;
+      border: 2px dashed #ff9800;
+      padding: 1rem;
+      border-radius: 12px;
+      color: #e65100;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>✅ Mäng loodud edukalt!</h1>
+
+    <p>Jaga see link õpilastega:</p>
+    <a href="<%= url %>" target="_blank"><%= url %></a>
+
+    <div class="qr">
+      <p>või skaneeri QR-kood:</p>
+      <img src="<%= qr %>" alt="QR-kood" width="180">
+    </div>
+
+    <div class="info-box">
+      <p>🧠 Selle mängu <strong>vahetundi pääsemise kood</strong> on:</p>
+      <p style="font-size: 1.4rem;"><%= code %></p>
+      <p>⏳ Sinu mängu säilitatakse <strong>2 nädalat</strong></p>
+    </div>
+  </div>
+
+</body>
+</html>

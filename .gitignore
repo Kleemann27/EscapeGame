@@ -1,0 +1,19 @@
+# Node.js
+node_modules/
+.env
+
+# SQLite andmebaas
+*.db
+*.sqlite
+
+# Logs
+logs/
+*.log
+
+# IDE failid
+.vscode/
+.idea/
+
+# Operatsioonisüsteemi prügikast
+.DS_Store
+Thumbs.db
