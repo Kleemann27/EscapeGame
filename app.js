@@ -50,7 +50,7 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
   <title>Põgenemismäng</title>
   <style>
     body {
-      font-family: Comic Sans MS, sans-serif;
+      font-family: Verdana, Geneva, Tahoma, sans-serif;
       background: #e1f5fe;
       color: #333;
       text-align: center;
@@ -64,7 +64,7 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
   </style>
 </head>
 <body>
-  <h1>🚪 Matemaatiline Põgenemismäng</h1>
+  <h1>🚪 Põgenemine vahetundi</h1>
 
   <div id="room1" class="room visible">
     <h2>1. tuba</h2>
@@ -76,9 +76,8 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
 
   <div id="next1" class="next">
     <h2>✅ Õige vastus!</h2>
-    <button onclick="goToRoom(2)">
-      <img src="https://cdn-icons-png.flaticon.com/512/271/271228.png" alt="Ava uks" width="80">
-    </button>
+    <p>Vajuta lukule</p>
+    <button onclick="goToRoom(2)"><img src="https://cdn-icons-png.flaticon.com/128/93/93141.png" width="60"></button>
   </div>
 
   <div id="room2" class="room">
@@ -89,11 +88,10 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
     <p id="msg2"></p>
   </div>
 
-  <div id="next2" class="next">
+  <div id="next1" class="next">
     <h2>✅ Õige vastus!</h2>
-    <button onclick="goToRoom(3)">
-      <img src="https://cdn-icons-png.flaticon.com/512/271/271228.png" alt="Ava uks" width="80">
-    </button>
+    <p>Vajuta lukule</p>
+    <button onclick="goToRoom(2)"><img src="https://cdn-icons-png.flaticon.com/128/93/93141.png" width="60"></button>
   </div>
 
   <div id="room3" class="room">
@@ -105,7 +103,7 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
   </div>
 
   <div id="next3" class="next">
-    <h2>🎉 Tubli! Sa pääsesid välja!</h2>
+    <h2>🎉 Tubli! Sa leidsid kõik õiged vastused!</h2>
     <p>Oled tõeline mõistatuste meister!</p>
     <p style="margin-top: 1rem; background: #c8e6c9; padding: 1rem; border-radius: 10px;">
       Vahetundi pääsemise parool on: <strong>${code}</strong>
@@ -114,16 +112,16 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
 
   <script>
     function check(n, correct) {
-      const input = document.getElementById('input' + n).value.trim();
-      const msg = document.getElementById('msg' + n);
-      if (input === correct) {
-        msg.textContent = "";
-        document.getElementById('room' + n).classList.remove("visible");
-        document.getElementById('next' + n).classList.add("visible");
-      } else {
-        msg.textContent = "❌ Vale vastus. Proovi uuesti!";
-      }
-    }
+  const input = document.getElementById('input' + n).value.trim();
+  const msg = document.getElementById('msg' + n);
+  if (input.toLowerCase() === correct.toLowerCase()) {
+    msg.textContent = "";
+    document.getElementById('room' + n).classList.remove("visible");
+    document.getElementById('next' + n).classList.add("visible");
+  } else {
+    msg.textContent = "❌ Vale vastus. Proovi uuesti!";
+  }
+}
 
     function goToRoom(n) {
       document.getElementById('next' + (n - 1)).classList.remove("visible");
