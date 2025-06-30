@@ -3,96 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Loo põgenemismäng</title>
-  <style>
-    body {
-      background-color: #fce4ec;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 2rem;
-      display: flex;
-      justify-content: center;
-    }
-
-    .container {
-      background-color: #fff;
-      padding: 2rem;
-      border-radius: 16px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-      max-width: 600px;
-      width: 100%;
-    }
-
-    h1 {
-      color: #c2185b;
-      text-align: center;
-      margin-bottom: 1.5rem;
-    }
-
-    label {
-      display: block;
-      margin-top: 1rem;
-      font-weight: bold;
-      color: #333;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 0.6rem;
-      margin-top: 0.3rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
-      background-color: #fafafa;
-    }
-
-    button {
-      margin-top: 2rem;
-      padding: 0.75rem 2rem;
-      font-size: 1.1rem;
-      background-color: #ff4081;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    button:hover {
-      background-color: #f50057;
-    }
-
-    hr {
-      margin: 2rem 0;
-      border: none;
-      border-top: 1px solid #eee;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="container">
-    <h1>
-  <img src="https://cdn-icons-png.flaticon.com/256/4651/4651967.png" alt="Pilt" width="40" style="vertical-align: middle; margin-right: 10px;">
-  Sisesta oma põgenemismäng
-</h1>
-    <form action="/generate" method="POST">
-      <label>Ülesanne 1</label>
-      <input type="text" name="q1" placeholder="Nt: Kui palju on 5 + 7?" required>
-      <label>1. ülesande õige vastus</label>
-      <input type="text" name="a1" placeholder="Nt: 12" required>
-      <hr>
-
-      <label>Ülesanne 2</label>
-      <input type="text" name="q2" placeholder="Nt: Ruudu külje pikkus on 5cm. Leia ümbermõõt." required>
-      <label>2. ülesande õige vastus</label>
-      <input type="text" name="a2" placeholder="Nt: 20" required>
-      <hr>
-
-      <label>Ülesanne 3</label><!DOCTYPE html>
-<html lang="et">
-<head>
-  <meta charset="UTF-8">
-  <title>Loo põgenemismäng</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
@@ -218,21 +128,6 @@
 
       <label>Vahetundi pääsemise parool</label>
       <input type="text" name="code" placeholder="Nt: KIRSIMOOS" required>
-
-      <button type="submit">🎮 Loo mäng</button>
-    </form>
-  </div>
-
-</body>
-</html>
-
-      <input type="text" name="q3" placeholder="Nt: Leia kolmnurga pindala, kui ..." required>
-      <label>3. ülesande õige vastus</label>
-      <input type="text" name="a3" placeholder="Nt: 24" required>
-      <hr>
-
-      <label>Vahetundi pääsemise parool</label>
-      <input type="text" name="code" placeholder="nt KIRSIMOOS" required>
 
       <button type="submit">🎮 Loo mäng</button>
     </form>
