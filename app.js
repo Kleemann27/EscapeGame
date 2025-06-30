@@ -127,7 +127,7 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
       document.getElementById('next' + (n - 1)).classList.remove("visible");
       document.getElementById('room' + n).classList.add("visible");
     }
-  <\/script>
+  </script>
 </body>
 </html>
 `;
