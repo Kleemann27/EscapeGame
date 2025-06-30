@@ -30,14 +30,16 @@ app.post('/generate', async (req, res) => {
   const filepath = path.join(__dirname, 'games', `${id}.html`);
   fs.writeFileSync(filepath, html); // salvesta fail kettale
 
-  db.prepare('INSERT INTO games (id, html, created_at) VALUES (?, ?, ?)').run(id, html, Date.now());
   
-  console.log(`Mäng salvestati andmebaasi ID-ga: ${id}`);
 
   const url = `${req.protocol}://${req.headers.host}/game/${id}`; // korrektne URL
   const qr = await QRCode.toDataURL(url);
 
   res.render('result', { url, qr, code }); // kuva tulemusleht
+
+  db.prepare('INSERT INTO games (id, html, created_at) VALUES (?, ?, ?)').run(id, html, Date.now());
+  
+  console.log(`Mäng salvestati andmebaasi ID-ga: ${id}`);
 });
 
 // Andmebaasist teenindatav mäng

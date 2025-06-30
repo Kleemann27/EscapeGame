@@ -1,18 +1,20 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 
-// ⬇ salvestab andmebaasi TMP kausta
-const dbPath = path.join('/tmp', 'games.db');
-const db = new Database(dbPath);
+const dbPath = process.env.NODE_ENV === 'production'
+  ? '/tmp/games.db'
+  : path.join(__dirname, 'games.db');
 
 console.log('Andmebaas avati asukohas:', dbPath);
 
-db.prepare(`
+const db = new Database(dbPath);
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS games (
     id TEXT PRIMARY KEY,
     html TEXT NOT NULL,
     created_at INTEGER NOT NULL
   )
-`).run();
+`);
 
 module.exports = db;
