@@ -3,6 +3,7 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const QRCode = require('qrcode');
 const fs = require('fs');
+process.env.RENDER = process.env.RENDER || process.env.RENDER_EXTERNAL_URL ? "true" : "";
 const db = require('./db'); // eeldab db.js olemasolu
 const app = express();
 
