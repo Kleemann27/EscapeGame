@@ -1,0 +1,87 @@
+
+<!DOCTYPE html>
+<html lang="et">
+<head>
+  <meta charset="UTF-8">
+  <title>Põgenemismäng</title>
+  <style>
+    body {
+      font-family: Verdana, sans-serif;
+      background: #e1f5fe;
+      color: #333;
+      text-align: center;
+      padding: 2rem;
+      font-size: 1.2rem;
+    }
+    .room, .next { display: none; }
+    .visible { display: block; }
+    input { padding: 0.5rem; font-size: 1.2rem; width: 80%; max-width: 300px; }
+    button {
+      margin-top: 1rem; padding: 0.6rem 1.2rem;
+      background: #03a9f4; color: white; border: none;
+      border-radius: 5px; cursor: pointer; font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>🚪 Põgenemine vahetundi</h1>
+
+  <div id="room1" class="room visible">
+    <h2>1. tuba</h2>
+    <p>Mitu?</p>
+    <input type="text" id="input1">
+    <button onclick="check(1, '1')">Kontrolli</button>
+    <p id="msg1"></p>
+  </div>
+
+  <div id="next1" class="next">
+    <h2>✅ Õige!</h2>
+    <button onclick="goToRoom(2)">➡️ Edasi</button>
+  </div>
+
+  <div id="room2" class="room">
+    <h2>2. tuba</h2>
+    <p>Kui palju?</p>
+    <input type="text" id="input2">
+    <button onclick="check(2, '2')">Kontrolli</button>
+    <p id="msg2"></p>
+  </div>
+
+  <div id="next2" class="next">
+    <h2>✅ Õige!</h2>
+    <button onclick="goToRoom(3)">➡️ Edasi</button>
+  </div>
+
+  <div id="room3" class="room">
+    <h2>3. tuba</h2>
+    <p>Mitmes?</p>
+    <input type="text" id="input3">
+    <button onclick="check(3, '3')">Kontrolli</button>
+    <p id="msg3"></p>
+  </div>
+
+  <div id="next3" class="next">
+    <h2>🎉 Tubli! Parool on:</h2>
+    <p><strong>böö</strong></p>
+  </div>
+
+  <script>
+    function check(n, correct) {
+      const input = document.getElementById('input' + n).value.trim();
+      const msg = document.getElementById('msg' + n);
+      if (input.toLowerCase() === correct.toLowerCase()) {
+        msg.textContent = '';
+        document.getElementById('room' + n).classList.remove('visible');
+        document.getElementById('next' + n).classList.add('visible');
+      } else {
+        msg.textContent = '❌ Vale vastus!';
+      }
+    }
+
+    function goToRoom(n) {
+      document.getElementById('next' + (n - 1)).classList.remove('visible');
+      document.getElementById('room' + n).classList.add('visible');
+    }
+  </script>
+</body>
+</html>

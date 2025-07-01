@@ -106,9 +106,21 @@
     <div class="info-box">
       <p>🧠 Selle mängu <strong>vahetundi pääsemise kood</strong> on:</p>
       <p><strong><%= code %></strong></p>
-      <p>⏳ Sinu mängu säilitatakse <strong>2 nädalat</strong></p>
+  
     </div>
+    <div style="margin-top: 2rem;">
+      <p>⏳ Sinu mängu säilitatakse <strong>kuni 24 tundi</strong></p>
+    <h1>Kui soovid oma mängu alles hoida ja hiljem kasutada, siis lae see alla</h1>
+  <a href="/download/<%= url.split('/').pop() %>">
+    <button style="padding: 0.6rem 1.2rem; font-size: 1.1rem; background: #4caf50; color: white; border: none; border-radius: 8px; cursor: pointer;">
+      ⬇️ Lae mäng alla
+    </button>
+  </a>
+</div>
   </div>
+
+  
+
 
 </body>
 </html>

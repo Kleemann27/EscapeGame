@@ -146,6 +146,16 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
 `;
 }
 
+app.get('/download/:id', (req, res) => {
+  const filepath = path.join('/tmp', `${req.params.id}.html`);
+  if (fs.existsSync(filepath)) {
+    res.download(filepath);
+  } else {
+    res.status(404).send('Faili ei leitud');
+  }
+});
+
+
 // Kuvab kõik mängud andmebaasist (kontrolliks Renderis)
 app.get('/list', (req, res) => {
   try {
