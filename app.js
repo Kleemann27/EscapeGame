@@ -1,58 +1,60 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const bodyParser = require('body-parser');
 const QRCode = require('qrcode');
-const fs = require('fs');
-const db = require('./db'); // eeldab db.js olemasolu
+const { db, DATA_DIR } = require('./db'); // db ja kausta tee
 
 const app = express();
 const PORT = process.env.PORT || 3030;
+const GAMES_DIR = path.join(DATA_DIR, 'games');
 
-// Vaated ja staatika
+// Veendu, et mängude kaust eksisteerib
+if (!fs.existsSync(GAMES_DIR)) {
+  fs.mkdirSync(GAMES_DIR, { recursive: true });
+}
+
+// EJS ja staatika
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Kaust failide salvestamiseks
-const GAME_DIR = process.env.RENDER ? '/tmp' : path.join(__dirname, 'games');
-if (!fs.existsSync(GAME_DIR)) {
-  fs.mkdirSync(GAME_DIR, { recursive: true });
-}
-
-// Avaleht – sisestusvorm
+// Avaleht
 app.get('/', (req, res) => {
   res.render('form');
 });
 
-// Vormilt saadud andmete töötlemine
+// Vormilt saadud andmete töötlemine ja salvestamine
 app.post('/generate', async (req, res) => {
   const { q1, a1, q2, a2, q3, a3, code } = req.body;
   const id = Math.random().toString(36).substr(2, 6).toLowerCase();
 
   const html = generateGame({ q1, a1, q2, a2, q3, a3, code });
+  const filePath = path.join(GAMES_DIR, `${id}.html`);
 
-  const filepath = path.join(GAME_DIR, `${id}.html`);
-  
-
-  const url = `${req.protocol}://${req.headers.host}/game/${id}`; // kasutab db-põhist teenindust
-  const qr = await QRCode.toDataURL(url);
+  // Salvesta HTML-fail
+  fs.writeFileSync(filePath, html);
 
   // Salvesta andmebaasi
   db.prepare('INSERT INTO games (id, html, created_at) VALUES (?, ?, ?)').run(id, html, Date.now());
-  console.log(`✅ Mäng salvestati: ${id} (${process.env.RENDER ? 'RENDER /tmp' : 'local'})`);
+  console.log(`✔ Mäng salvestati: ${filePath}`);
+
+  // Loo mängu link ja QR
+  const url = `${req.protocol}://${req.headers.host}/game/${id}`;
+  const qr = await QRCode.toDataURL(url);
 
   res.render('result', { url, qr, code });
 });
 
-// Teenindab mängu ID põhjal (andmebaasist)
+// Teenindab mängu andmebaasist
 app.get('/game/:id', (req, res) => {
   const row = db.prepare('SELECT html FROM games WHERE id = ?').get(req.params.id);
-  if (!row) return res.status(404).send('❌ Mängu ei leitud.');
+  if (!row) return res.status(404).send('❌ Mängu ei leitud');
   res.send(row.html);
 });
 
-// HTML-mängu genereerimine
+// HTML mängu genereerimine
 function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
   return `
 <!DOCTYPE html>
@@ -62,39 +64,20 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
   <title>Põgenemismäng</title>
   <style>
     body {
-      font-family: Verdana, Geneva, Tahoma, sans-serif;
+      font-family: Verdana, sans-serif;
       background: #e1f5fe;
       color: #333;
       text-align: center;
       padding: 2rem;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
     }
-    h1 { font-size: 1.8rem; }
-    h2 { font-size: 1.4rem; color: #0288d1; }
     .room, .next { display: none; }
     .visible { display: block; }
-    input {
-      padding: 0.7rem;
-      font-size: 1.2rem;
-      width: 90%;
-      max-width: 300px;
-    }
+    input { padding: 0.5rem; font-size: 1.2rem; width: 80%; max-width: 300px; }
     button {
-      margin-top: 1rem;
-      padding: 0.6rem 1.2rem;
-      background: #03a9f4;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1.1rem;
-    }
-    @media (max-width: 600px) {
-      body { font-size: 1.3rem; padding: 1rem; }
-      h1 { font-size: 2rem; }
-      h2 { font-size: 1.6rem; }
-      input { font-size: 1.4rem; }
-      button { font-size: 1.3rem; }
+      margin-top: 1rem; padding: 0.6rem 1.2rem;
+      background: #03a9f4; color: white; border: none;
+      border-radius: 5px; cursor: pointer; font-size: 1rem;
     }
   </style>
 </head>
@@ -110,11 +93,8 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
   </div>
 
   <div id="next1" class="next">
-    <h2>✅ Õige vastus!</h2>
-    <p>Vajuta lukule</p>
-    <button onclick="goToRoom(2)">
-      <img src="https://cdn-icons-png.flaticon.com/128/93/93141.png" width="60">
-    </button>
+    <h2>✅ Õige!</h2>
+    <button onclick="goToRoom(2)">➡️ Edasi</button>
   </div>
 
   <div id="room2" class="room">
@@ -126,11 +106,8 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
   </div>
 
   <div id="next2" class="next">
-    <h2>✅ Õige vastus!</h2>
-    <p>Vajuta lukule</p>
-    <button onclick="goToRoom(3)">
-      <img src="https://cdn-icons-png.flaticon.com/128/93/93141.png" width="60">
-    </button>
+    <h2>✅ Õige!</h2>
+    <button onclick="goToRoom(3)">➡️ Edasi</button>
   </div>
 
   <div id="room3" class="room">
@@ -142,11 +119,8 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
   </div>
 
   <div id="next3" class="next">
-    <h2>🎉 Tubli! Sa leidsid kõik õiged vastused!</h2>
-    <p>Oled tõeline mõistatuste meister!</p>
-    <p style="margin-top: 1rem; background: #c8e6c9; padding: 1rem; border-radius: 10px;">
-      Vahetundi pääsemise parool on: <strong>${code}</strong>
-    </p>
+    <h2>🎉 Tubli! Parool on:</h2>
+    <p><strong>${code}</strong></p>
   </div>
 
   <script>
@@ -154,23 +128,25 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
       const input = document.getElementById('input' + n).value.trim();
       const msg = document.getElementById('msg' + n);
       if (input.toLowerCase() === correct.toLowerCase()) {
-        msg.textContent = "";
-        document.getElementById('room' + n).classList.remove("visible");
-        document.getElementById('next' + n).classList.add("visible");
+        msg.textContent = '';
+        document.getElementById('room' + n).classList.remove('visible');
+        document.getElementById('next' + n).classList.add('visible');
       } else {
-        msg.textContent = "❌ Vale vastus. Proovi uuesti!";
+        msg.textContent = '❌ Vale vastus!';
       }
     }
+
     function goToRoom(n) {
-      document.getElementById('next' + (n - 1)).classList.remove("visible");
-      document.getElementById('room' + n).classList.add("visible");
+      document.getElementById('next' + (n - 1)).classList.remove('visible');
+      document.getElementById('room' + n).classList.add('visible');
     }
   </script>
 </body>
 </html>
-  `;
+`;
 }
 
+// Käivita server
 app.listen(PORT, () => {
-  console.log(`🚀 Server töötab: http://localhost:${PORT}`);
+  console.log(`✅ Server töötab: http://localhost:${PORT}`);
 });
