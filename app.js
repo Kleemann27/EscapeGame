@@ -146,6 +146,27 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
 `;
 }
 
+// Kuvab kõik mängud andmebaasist (kontrolliks Renderis)
+app.get('/list', (req, res) => {
+  try {
+    const rows = db.prepare('SELECT id, created_at FROM games ORDER BY created_at DESC').all();
+    res.send(`
+      <h1>Salvestatud mängud (${rows.length})</h1>
+      <ul>
+        ${rows.map(row => `
+          <li>
+            <a href="/game/${row.id}" target="_blank">${row.id}</a>
+            - ${new Date(row.created_at).toLocaleString()}
+          </li>
+        `).join('')}
+      </ul>
+    `);
+  } catch (err) {
+    console.error("❌ Viga mängude kuvamisel:", err);
+    res.status(500).send('Tekkis viga mängude nimekirja kuvamisel.');
+  }
+});
+
 // Käivita server
 app.listen(PORT, () => {
   console.log(`✅ Server töötab: http://localhost:${PORT}`);
