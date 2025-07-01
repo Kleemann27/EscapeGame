@@ -1,20 +1,25 @@
+// --- app.js ---
+
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const bodyParser = require('body-parser');
 const QRCode = require('qrcode');
-const { db, DATA_DIR } = require('./db'); // db ja kausta tee
+const db = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3030;
-const GAMES_DIR = path.join(DATA_DIR, 'games');
 
-// Veendu, et mängude kaust eksisteerib
-if (!fs.existsSync(GAMES_DIR)) {
-  fs.mkdirSync(GAMES_DIR, { recursive: true });
+// Määrame, kas oleme Renderis
+const IS_RENDER = !!process.env.RENDER || !!process.env.RENDER_EXTERNAL_URL;
+const DATA_DIR = IS_RENDER ? '/tmp' : path.join(__dirname, 'games');
+const FILES_DIR = path.join(DATA_DIR, 'games');
+
+if (!fs.existsSync(FILES_DIR)) {
+  fs.mkdirSync(FILES_DIR, { recursive: true });
 }
 
-// EJS ja staatika
+// Vaated ja staatika
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
@@ -25,64 +30,117 @@ app.get('/', (req, res) => {
   res.render('form');
 });
 
-// Vormilt saadud andmete töötlemine ja salvestamine
+// Mängu genereerimine
 app.post('/generate', async (req, res) => {
   const { q1, a1, q2, a2, q3, a3, code } = req.body;
   const id = Math.random().toString(36).substr(2, 6).toLowerCase();
 
   const html = generateGame({ q1, a1, q2, a2, q3, a3, code });
-  const filePath = path.join(GAMES_DIR, `${id}.html`);
 
-  // Salvesta HTML-fail
+  const filePath = path.join(FILES_DIR, `${id}.html`);
   fs.writeFileSync(filePath, html);
 
-  // Salvesta andmebaasi
   db.prepare('INSERT INTO games (id, html, created_at) VALUES (?, ?, ?)').run(id, html, Date.now());
-  console.log(`✔ Mäng salvestati: ${filePath}`);
 
-  // Loo mängu link ja QR
   const url = `${req.protocol}://${req.headers.host}/game/${id}`;
   const qr = await QRCode.toDataURL(url);
 
   res.render('result', { url, qr, code });
 });
 
-// Teenindab mängu andmebaasist
+// Mängu kuvamine
 app.get('/game/:id', (req, res) => {
   const row = db.prepare('SELECT html FROM games WHERE id = ?').get(req.params.id);
-  if (!row) return res.status(404).send('❌ Mängu ei leitud');
+  if (!row) return res.status(404).send('Mängu ei leitud.');
   res.send(row.html);
 });
 
-// HTML mängu genereerimine
+// Mängu allalaadimine
+app.get('/download/:id', (req, res) => {
+  const filePath = path.join(FILES_DIR, `${req.params.id}.html`);
+  if (!fs.existsSync(filePath)) return res.status(404).send('Faili ei leitud.');
+  res.download(filePath);
+});
+
+// Mängu HTML genereerimine
 function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
   return `
 <!DOCTYPE html>
 <html lang="et">
 <head>
   <meta charset="UTF-8">
-  <title>Põgenemismäng</title>
+  <title>P\u00f5genemism\u00e4ng</title>
   <style>
     body {
-      font-family: Verdana, sans-serif;
+      font-family: Verdana, Geneva, Tahoma, sans-serif;
       background: #e1f5fe;
       color: #333;
       text-align: center;
       padding: 2rem;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
     }
-    .room, .next { display: none; }
-    .visible { display: block; }
-    input { padding: 0.5rem; font-size: 1.2rem; width: 80%; max-width: 300px; }
+
+    h1 {
+      font-size: 1.8rem;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      color: #0288d1;
+    }
+
+    .room, .next {
+      display: none;
+    }
+
+    .visible {
+      display: block;
+    }
+
+    input {
+      padding: 0.7rem;
+      font-size: 1.2rem;
+      width: 90%;
+      max-width: 300px;
+    }
+
     button {
-      margin-top: 1rem; padding: 0.6rem 1.2rem;
-      background: #03a9f4; color: white; border: none;
-      border-radius: 5px; cursor: pointer; font-size: 1rem;
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background: #03a9f4;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        font-size: 1.3rem;
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      h2 {
+        font-size: 1.6rem;
+      }
+
+      input {
+        font-size: 1.4rem;
+      }
+
+      button {
+        font-size: 1.3rem;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>🚪 Põgenemine vahetundi</h1>
+  <h1>\ud83d\udeaa P\u00f5genemine vahetundi</h1>
 
   <div id="room1" class="room visible">
     <h2>1. tuba</h2>
@@ -93,8 +151,9 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
   </div>
 
   <div id="next1" class="next">
-    <h2>✅ Õige!</h2>
-    <button onclick="goToRoom(2)">➡️ Edasi</button>
+    <h2>\u2705 \u00d5ige vastus!</h2>
+    <p>Vajuta lukule</p>
+    <button onclick="goToRoom(2)"><img src="https://cdn-icons-png.flaticon.com/128/93/93141.png" width="60"></button>
   </div>
 
   <div id="room2" class="room">
@@ -106,8 +165,9 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
   </div>
 
   <div id="next2" class="next">
-    <h2>✅ Õige!</h2>
-    <button onclick="goToRoom(3)">➡️ Edasi</button>
+    <h2>\u2705 \u00d5ige vastus!</h2>
+    <p>Vajuta lukule</p>
+    <button onclick="goToRoom(3)"><img src="https://cdn-icons-png.flaticon.com/128/93/93141.png" width="60"></button>
   </div>
 
   <div id="room3" class="room">
@@ -119,8 +179,11 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
   </div>
 
   <div id="next3" class="next">
-    <h2>🎉 Tubli! Parool on:</h2>
-    <p><strong>${code}</strong></p>
+    <h2>\ud83c\udf89 Tubli! Sa leidsid k\u00f5ik \u00f5iged vastused!</h2>
+    <p>Oled t\u00f5eline m\u00f5istatuste meister!</p>
+    <p style="margin-top: 1rem; background: #c8e6c9; padding: 1rem; border-radius: 10px;">
+      Vahetundi p\u00e4\u00e4semise parool on: <strong>${code}</strong>
+    </p>
   </div>
 
   <script>
@@ -128,56 +191,25 @@ function generateGame({ q1, a1, q2, a2, q3, a3, code }) {
       const input = document.getElementById('input' + n).value.trim();
       const msg = document.getElementById('msg' + n);
       if (input.toLowerCase() === correct.toLowerCase()) {
-        msg.textContent = '';
-        document.getElementById('room' + n).classList.remove('visible');
-        document.getElementById('next' + n).classList.add('visible');
+        msg.textContent = "";
+        document.getElementById('room' + n).classList.remove("visible");
+        document.getElementById('next' + n).classList.add("visible");
       } else {
-        msg.textContent = '❌ Vale vastus!';
+        msg.textContent = "\u274c Vale vastus. Proovi uuesti!";
       }
     }
 
     function goToRoom(n) {
-      document.getElementById('next' + (n - 1)).classList.remove('visible');
-      document.getElementById('room' + n).classList.add('visible');
+      document.getElementById('next' + (n - 1)).classList.remove("visible");
+      document.getElementById('room' + n).classList.add("visible");
     }
   </script>
 </body>
 </html>
-`;
+  `;
 }
 
-app.get('/download/:id', (req, res) => {
-  const filepath = path.join('/tmp', `${req.params.id}.html`);
-  if (fs.existsSync(filepath)) {
-    res.download(filepath);
-  } else {
-    res.status(404).send('Faili ei leitud');
-  }
-});
-
-
-// Kuvab kõik mängud andmebaasist (kontrolliks Renderis)
-app.get('/list', (req, res) => {
-  try {
-    const rows = db.prepare('SELECT id, created_at FROM games ORDER BY created_at DESC').all();
-    res.send(`
-      <h1>Salvestatud mängud (${rows.length})</h1>
-      <ul>
-        ${rows.map(row => `
-          <li>
-            <a href="/game/${row.id}" target="_blank">${row.id}</a>
-            - ${new Date(row.created_at).toLocaleString()}
-          </li>
-        `).join('')}
-      </ul>
-    `);
-  } catch (err) {
-    console.error("❌ Viga mängude kuvamisel:", err);
-    res.status(500).send('Tekkis viga mängude nimekirja kuvamisel.');
-  }
-});
-
-// Käivita server
+// Serveri käivitamine
 app.listen(PORT, () => {
-  console.log(`✅ Server töötab: http://localhost:${PORT}`);
+  console.log(`Server töötab aadressil: http://localhost:${PORT}`);
 });
